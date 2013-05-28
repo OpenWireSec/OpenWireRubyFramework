@@ -1,0 +1,87 @@
+#!/usr/bin/env ruby
+require 'optparse'
+require 'rubygems'
+require 'colorize'
+
+def cls
+	#Function to clear terminal
+	if RUBY_PLATFORM =~ /win32/ 
+		system('cls')
+	else
+		system('clear')
+	end
+end
+
+def banner
+	puts
+	puts "  _|_|                                  _|          _|  _|                     ".light_green
+	puts "_|    _|  _|_|_|      _|_|    _|_|_|    _|          _|      _|  _|_|    _|_|   ".light_green
+	puts "_|    _|  _|    _|  _|_|_|_|  _|    _|  _|    _|    _|  _|  _|_|      _|_|_|_| ".light_green
+	puts "_|    _|  _|    _|  _|        _|    _|    _|  _|  _|    _|  _|        _|       ".light_green
+	puts "  _|_|    _|_|_|      _|_|_|  _|    _|      _|  _|      _|  _|          _|_|_| ".light_green
+	puts "         _|                                                                    ".light_green
+	puts "         _|                                                                    ".light_green
+	puts "                                      OpenWire Ruby Framework, v0.1-beta       ".light_red
+end
+
+#PARSE RUNTIME ARGUMENTS
+options = {}
+optparse = OptionParser.new do |opts| 
+	opts.banner = "Usage:".light_green + "#{$0} ".white + "[".light_green + "OPTIONS".white + "]".light_green
+	opts.separator ""
+	opts.separator "EX:".light_green + " #{$0} -c".white
+	opts.separator "EX:".light_green + " #{$0} -w".white
+	opts.separator "EX:".light_green + " #{$0} --cli".white
+	opts.separator "EX:".light_green + " #{$0} --web".white
+	opts.separator ""
+	opts.separator "Options: ".light_green
+
+	opts.on('-c', '--cli', "\n\tRun CLI Framework".white) do |method|
+		options[:method] = 1
+	end
+	opts.on('-w', '--web', "\n\tRun Web Framework".white) do |method|
+		options[:method] = 2
+	end
+	opts.on('-h', '--help', "\n\tDisplay Help Menu".white) do 
+		cls
+		banner
+		puts opts
+		puts
+		exit 69;
+	end
+end
+
+begin
+	foo = ARGV[0] || ARGV[0] = "-h" #if nothing passed, send to help menu
+	optparse.parse!
+	mandatory = [:method]
+	missing = mandatory.select{ |param| options[param].nil? } #freakout if they dont give us what we stated above :p
+	if not missing.empty?
+		puts "Missing option(s): ".red + " #{missing.join(', ')}".white
+		puts
+		banner
+		puts optparse
+		exit
+	end
+rescue OptionParser::InvalidOption, OptionParser::MissingArgument #catch errors from options parsing and send usage
+	cls
+	puts $!.to_s.light_red
+	puts
+	banner
+	puts optparse
+	puts
+	exit 666;
+end
+
+require './libs/core'
+$framework = Core::CoreShell.new
+$framework.cls
+$framework.banner
+
+if options[:method].to_i == 2
+	#Perhaps in the near future we can find a bridge our implement a standalone web server (sinatra, webricks, rails or rack even)
+	$framework.core_web_shell
+else
+	$framework.core_shell
+end
+#EOF
